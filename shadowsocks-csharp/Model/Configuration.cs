@@ -134,6 +134,8 @@ namespace Shadowsocks.Model
         public string authPass;
 
         public bool autoBan;
+        public bool checkSwitchAutoCloseAll;
+        public bool logEnable;
         public bool sameHostForSameTarget;
 
         public int keepVisitTime;
@@ -151,6 +153,7 @@ namespace Shadowsocks.Model
         private LRUCache<string, UriVisitTime> uricache = new LRUCache<string, UriVisitTime>(180);
 
         private static string CONFIG_FILE = "gui-config.json";
+        private static string CONFIG_FILE_BACKUP = "gui-config.json.backup";
 
         public static void SetPassword(string password)
         {
@@ -435,6 +438,8 @@ namespace Shadowsocks.Model
             authUser = config.authUser;
             authPass = config.authPass;
             autoBan = config.autoBan;
+            checkSwitchAutoCloseAll = config.checkSwitchAutoCloseAll;
+            logEnable = config.logEnable;
             sameHostForSameTarget = config.sameHostForSameTarget;
             keepVisitTime = config.keepVisitTime;
             isHideTips = config.isHideTips;
@@ -560,6 +565,20 @@ namespace Shadowsocks.Model
                 {
                     sw.Write(jsonString);
                     sw.Flush();
+                }
+
+                if (File.Exists(CONFIG_FILE_BACKUP))
+                {
+                    DateTime dt = File.GetLastWriteTimeUtc(CONFIG_FILE_BACKUP);
+                    DateTime now = DateTime.Now;
+                    if ((now - dt).TotalHours > 4)
+                    {
+                        File.Copy(CONFIG_FILE, CONFIG_FILE_BACKUP, true);
+                    }
+                }
+                else
+                {
+                    File.Copy(CONFIG_FILE, CONFIG_FILE_BACKUP, true);
                 }
             }
             catch (IOException e)
